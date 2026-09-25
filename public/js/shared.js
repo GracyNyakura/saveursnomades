@@ -1,3 +1,6 @@
+const stylesheet = document.querySelector('link[href*="styles.css"]');
+if (stylesheet && !stylesheet.href.includes('v=montserrat-20260926')) stylesheet.href = 'styles.css?v=montserrat-20260926';
+
 const api = async (url, options = {}) => {
   const response = await fetch(url, { headers: { 'Content-Type': 'application/json', ...(options.headers || {}) }, ...options });
   const data = await response.json().catch(() => ({}));

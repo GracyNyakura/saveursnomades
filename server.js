@@ -11,6 +11,10 @@ const PORT = process.env.PORT || 60000;
 
 app.use(require('cors')());
 app.use(bodyParser.json());
+app.use((req, res, next) => {
+  if (req.path.endsWith('/styles.css')) res.setHeader('Cache-Control', 'no-store, max-age=0');
+  next();
+});
 app.use(express.static(path.join(__dirname, 'public')));
 
 const sessions = new Map();

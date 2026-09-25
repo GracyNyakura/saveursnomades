@@ -5,8 +5,8 @@
       <stop offset="1" stop-color="#059669"/>
     </linearGradient>
     <style>
-      .ln-brand{font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-weight:700;letter-spacing:1px}
-      .ln-tag{font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-weight:400;font-size:28px;opacity:0.85}
+      .ln-brand{font-family: 'Montserrat';font-weight:700;letter-spacing:1px}
+      .ln-tag{font-family: 'Montserrat';font-weight:400;font-size:28px;opacity:0.85}
     </style>
   </defs>
   <rect width="100%" height="100%" fill="none"/>
