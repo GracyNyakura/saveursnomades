@@ -33,6 +33,7 @@ db.serialize(() => {
     date TEXT NOT NULL,
     time TEXT NOT NULL,
     notes TEXT,
+    order_details TEXT,
     status TEXT DEFAULT 'pending',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )`);
@@ -47,11 +48,12 @@ db.serialize(() => {
   )`);
   db.all('PRAGMA table_info(reservations)', (error, columns) => {
     if (error) return console.error('SQLite schema check failed:', error.message);
-    if (!columns.some(column => column.name === 'status')) {
-      db.run("ALTER TABLE reservations ADD COLUMN status TEXT DEFAULT 'pending'", migrationError => {
-        if (migrationError) console.error('SQLite migration failed:', migrationError.message);
-      });
-    }
+    const migrations = [];
+    if (!columns.some(column => column.name === 'status')) migrations.push("ALTER TABLE reservations ADD COLUMN status TEXT DEFAULT 'pending'");
+    if (!columns.some(column => column.name === 'order_details')) migrations.push('ALTER TABLE reservations ADD COLUMN order_details TEXT');
+    migrations.forEach(statement => db.run(statement, migrationError => {
+      if (migrationError) console.error('SQLite migration failed:', migrationError.message);
+    }));
   });
   db.get('SELECT COUNT(*) AS count FROM stock_items', (error, row) => {
     if (error) return console.error('SQLite stock check failed:', error.message);
@@ -105,16 +107,17 @@ app.get('/api/menus', (req, res) => {
 
 // Create reservation
 app.post('/api/reservations', (req, res) => {
-  const { name, email, phone, party, date, time, notes } = req.body;
+  const { name, email, phone, party, date, time, notes, order } = req.body;
   if (!name || !email || !party || !date || !time) {
     return res.status(400).json({ error: 'Champs requis manquants' });
   }
 
-  const stmt = db.prepare('INSERT INTO reservations (name,email,phone,party,date,time,notes) VALUES (?,?,?,?,?,?,?)');
-  stmt.run(name, email, phone || '', party, date, time, notes || '', function(err) {
+  const orderDetails = Array.isArray(order) ? JSON.stringify(order) : '[]';
+  const stmt = db.prepare('INSERT INTO reservations (name,email,phone,party,date,time,notes,order_details) VALUES (?,?,?,?,?,?,?,?)');
+  stmt.run(name, email, phone || '', party, date, time, notes || '', orderDetails, function(err) {
     if (err) return res.status(500).json({ error: 'Erreur en base' });
 
-    const reservation = { id: this.lastID, name, email, phone, party, date, time, notes, status: 'pending' };
+    const reservation = { id: this.lastID, name, email, phone, party, date, time, notes, order: Array.isArray(order) ? order : [], status: 'pending' };
 
     // Send confirmation email (configure SMTP via env vars)
     if (process.env.SMTP_HOST) {

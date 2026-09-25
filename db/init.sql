@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS reservations (
   date TEXT NOT NULL,
   time TEXT NOT NULL,
     notes TEXT,
+  order_details TEXT,
     status TEXT DEFAULT 'pending',
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
