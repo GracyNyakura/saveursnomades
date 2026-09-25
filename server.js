@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
+const fs = require('fs');
 const sqlite3 = require('sqlite3').verbose();
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
@@ -15,8 +16,13 @@ app.use(express.static(path.join(__dirname, 'public')));
 const sessions = new Map();
 const staffAccount = { email: process.env.STAFF_EMAIL || 'admin@saveurs-nomades.fr', password: process.env.STAFF_PASSWORD || 'nomades2024', name: 'Équipe Saveurs Nomades' };
 
-// Initialize SQLite DB
-const db = new sqlite3.Database(path.join(__dirname, 'db', 'reservations.db'));
+// Initialize SQLite DB. The data directory may not exist on a fresh deployment.
+const dataDirectory = process.env.VERCEL === '1'
+  ? path.join('/tmp', 'saveurs-nomades')
+  : path.join(__dirname, 'db');
+fs.mkdirSync(dataDirectory, { recursive: true });
+const db = new sqlite3.Database(path.join(dataDirectory, 'reservations.db'));
+db.configure('busyTimeout', 5000);
 db.serialize(() => {
   db.run(`CREATE TABLE IF NOT EXISTS reservations (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -39,15 +45,25 @@ db.serialize(() => {
     threshold REAL NOT NULL DEFAULT 1,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )`);
-  db.run("ALTER TABLE reservations ADD COLUMN status TEXT DEFAULT 'pending'", () => {});
+  db.all('PRAGMA table_info(reservations)', (error, columns) => {
+    if (error) return console.error('SQLite schema check failed:', error.message);
+    if (!columns.some(column => column.name === 'status')) {
+      db.run("ALTER TABLE reservations ADD COLUMN status TEXT DEFAULT 'pending'", migrationError => {
+        if (migrationError) console.error('SQLite migration failed:', migrationError.message);
+      });
+    }
+  });
   db.get('SELECT COUNT(*) AS count FROM stock_items', (error, row) => {
-    if (!error && row.count === 0) {
+    if (error) return console.error('SQLite stock check failed:', error.message);
+    if (row.count === 0) {
       const seed = db.prepare('INSERT INTO stock_items (name, category, quantity, unit, threshold) VALUES (?, ?, ?, ?, ?)');
       [['Tomates anciennes', 'Frais', 8, 'kg', 3], ['Pois chiches', 'Épicerie', 12, 'kg', 4], ['Huile d’olive', 'Épicerie', 5, 'L', 2], ['Menthe fraîche', 'Herbes', 0.8, 'kg', 1], ['Citrons', 'Frais', 18, 'pièces', 8]].forEach(item => seed.run(item));
-      seed.finalize();
+      seed.finalize(seedError => { if (seedError) console.error('SQLite stock seed failed:', seedError.message); });
     }
   });
 });
+
+app.get('/health', (req, res) => res.json({ status: 'ok' }));
 
 function requireStaff(req, res, next) {
   const token = req.headers.authorization?.replace('Bearer ', '') || req.headers.cookie?.match(/sn_session=([^;]+)/)?.[1];
@@ -191,4 +207,8 @@ app.delete('/api/stock/:id', requireStaff, (req, res) => {
   });
 });
 
-app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+if (require.main === module) {
+  app.listen(PORT, '0.0.0.0', () => console.log(`Server running on http://localhost:${PORT}`));
+}
+
+module.exports = app;
