@@ -52,35 +52,22 @@ function collectOrder() {
 (async () => { await catalogReady; ['entrees', 'plats', 'boissons', 'desserts'].forEach(category => addOrderLine(category)); updateOrderTotal(); })();
 document.querySelector('#add-order-line').addEventListener('click', () => addOrderLine());
 
-function createReservationPdf(data, reservation) {
-  if (!window.jspdf?.jsPDF) throw new Error('Le module PDF est indisponible');
+async function createReservationPdf(data, reservation) {
+  if (!window.jspdf?.jsPDF || !window.html2canvas) throw new Error('Le module PDF est indisponible');
+  const ref = `SN-${String(reservation?.id || Date.now()).padStart(5, '0')}`;
+  const invoice = document.createElement('article');
+  invoice.className = 'pdf-invoice';
+  invoice.innerHTML = `<div class="pdf-invoice__head"><div class="pdf-invoice__logo">SAVEURS<strong>NOMADES</strong></div><div>CUISINE EN MOUVEMENT<br>MONTPELLIER · FRANCE</div><div class="pdf-invoice__motif">•<br>•<br>•</div></div><div class="pdf-invoice__title"><span>Facture</span><strong>de votre escale</strong><p>Merci, votre commande est confirmée.</p></div><div class="pdf-invoice__details"><div><small>RÉFÉRENCE</small><span>${ref}</span></div><div><small>CLIENT</small><span>${data.name}</span></div><div><small>EMAIL</small><span>${data.email}</span></div><div><small>DATE & HEURE</small><span>${data.date} · ${data.time}</span></div><div><small>CONVIVES</small><span>${data.party} personne${Number(data.party) > 1 ? 's' : ''}</span></div></div><div class="pdf-invoice__table"><div class="pdf-invoice__table-head"><span>ARTICLE</span><span>QUANTITÉ</span><span>TOTAL</span></div>${(data.order || []).map(line => `<div class="pdf-invoice__row"><span>${line.name}<small>${Number(line.unitPrice).toFixed(2)} € l'unité</small></span><span>${line.quantity}</span><strong>${Number(line.lineTotal).toFixed(2)} €</strong></div>`).join('')}</div><div class="pdf-invoice__total"><span>TOTAL À RÉGLER</span><strong>${Number(data.total || 0).toFixed(2)} €</strong></div><footer>Saveurs Nomades · bonjour@saveurs-nomades.fr · Merci pour votre confiance</footer>`;
+  document.body.appendChild(invoice);
+  await document.fonts.ready;
+  const canvas = await html2canvas(invoice, { scale: 2, backgroundColor: '#f6f1e8', useCORS: true });
   const { jsPDF } = window.jspdf;
   const pdf = new jsPDF({ unit: 'mm', format: 'a4' });
-  const forest = [31, 64, 52];
-  const clay = [198, 92, 60];
-  const ink = [31, 43, 37];
-  const light = [246, 241, 232];
-  const ref = `SN-${String(reservation?.id || Date.now()).padStart(5, '0')}`;
-  pdf.setFillColor(...forest); pdf.rect(0, 0, 210, 297, 'F');
-  pdf.setFillColor(...light); pdf.rect(15, 15, 180, 267, 'F');
-  pdf.setFillColor(...forest); pdf.rect(15, 15, 180, 48, 'F');
-  pdf.setFillColor(233, 163, 126);
-  for (let y = 22; y <= 54; y += 8) pdf.circle(183, y, 1.2, 'F');
-  pdf.setTextColor(255, 255, 255); pdf.setFont('helvetica', 'bold'); pdf.setFontSize(19); pdf.text('SAVEURS', 27, 35);
-  pdf.setFont('helvetica', 'italic'); pdf.setFontSize(18); pdf.text('NOMADES', 27, 46);
-  pdf.setFont('helvetica', 'normal'); pdf.setFontSize(8); pdf.text('CUISINE EN MOUVEMENT', 157, 34, { align: 'right' }); pdf.text('MONTPELLIER · FRANCE', 157, 44, { align: 'right' });
-  pdf.setTextColor(...ink); pdf.setFont('helvetica', 'bold'); pdf.setFontSize(23); pdf.text('Facture', 27, 86); pdf.setTextColor(...clay); pdf.setFont('helvetica', 'italic'); pdf.text('de votre escale', 27, 97);
-  pdf.setTextColor(100, 108, 101); pdf.setFont('helvetica', 'normal'); pdf.setFontSize(9); pdf.text('Merci, votre commande est confirmée.', 27, 110);
-  pdf.setDrawColor(...clay); pdf.setLineWidth(.6); pdf.line(27, 119, 183, 119);
-  const details = [['RÉFÉRENCE', ref], ['CLIENT', data.name], ['EMAIL', data.email], ['DATE', data.date], ['HEURE', data.time], ['CONVIVES', `${data.party} personne${Number(data.party) > 1 ? 's' : ''}`]];
-  let y = 132;
-  details.forEach(([label, value]) => { pdf.setTextColor(...clay); pdf.setFont('helvetica', 'bold'); pdf.setFontSize(7); pdf.text(label, 27, y); pdf.setTextColor(...ink); pdf.setFont('helvetica', 'normal'); pdf.setFontSize(10); pdf.text(String(value || 'Non précisé'), 86, y); y += 10; });
-  pdf.setFillColor(...forest); pdf.rect(27, 193, 156, 9, 'F'); pdf.setTextColor(255, 255, 255); pdf.setFont('helvetica', 'bold'); pdf.setFontSize(7); pdf.text('ARTICLE', 31, 199); pdf.text('QTÉ', 133, 199); pdf.text('TOTAL', 178, 199, { align: 'right' });
-  y = 211;
-  (data.order || []).forEach(line => { pdf.setTextColor(...ink); pdf.setFont('helvetica', 'normal'); pdf.setFontSize(9); pdf.text(String(line.name).slice(0, 34), 31, y); pdf.setTextColor(100, 108, 101); pdf.setFontSize(8); pdf.text(`${line.quantity} × ${Number(line.unitPrice).toFixed(2)} €`, 125, y); pdf.setTextColor(...ink); pdf.setFont('helvetica', 'bold'); pdf.setFontSize(9); pdf.text(`${Number(line.lineTotal).toFixed(2)} €`, 178, y, { align: 'right' }); y += 10; });
-  pdf.setDrawColor(...clay); pdf.setLineWidth(.4); pdf.line(27, 257, 183, 257); pdf.setTextColor(...forest); pdf.setFont('helvetica', 'bold'); pdf.setFontSize(12); pdf.text('TOTAL À RÉGLER', 27, 268); pdf.setTextColor(...clay); pdf.setFontSize(16); pdf.text(`${Number(data.total || 0).toFixed(2)} €`, 183, 268, { align: 'right' });
-  pdf.setTextColor(110, 117, 110); pdf.setFont('helvetica', 'normal'); pdf.setFontSize(8); pdf.text('Saveurs Nomades · bonjour@saveurs-nomades.fr · Merci pour votre confiance', 105, 278, { align: 'center' });
+  const width = 180;
+  const height = canvas.height * width / canvas.width;
+  pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 15, 15, width, height);
   pdf.save(`reservation-${ref}.pdf`);
+  invoice.remove();
 }
 
 document.querySelector('input[name="date"]').min = new Date().toISOString().split('T')[0];
@@ -99,7 +86,7 @@ form.addEventListener('submit', async event => {
     data.total = updateOrderTotal();
     if (!data.order.length) throw new Error('Choisissez au moins un article pour votre commande.');
     const response = await api('/api/reservations', { method: 'POST', body: JSON.stringify(data) });
-    createReservationPdf(data, response.reservation);
+    await createReservationPdf(data, response.reservation);
     message.textContent = 'Réservation confirmée. Votre facture PDF a été téléchargée.';
     message.className = 'success'; form.reset();
   } catch (error) { message.textContent = error.message; message.className = 'error'; }
