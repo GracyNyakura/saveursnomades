@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Saveurs Nomades, une table vivante entre les ports de la Méditerranée et les épices de l'ailleurs.">
+  <title>Saveurs Nomades — Cuisine en mouvement</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header" id="accueil">
+    <a class="brand" href="#accueil" aria-label="Saveurs Nomades, accueil">
+      <span class="brand-mark">SN</span>
+      <span class="brand-text"><strong>Saveurs</strong><em>Nomades</em></span>
+    </a>
+    <nav class="site-nav" aria-label="Navigation principale">
+      <a href="/histoire.html">Notre histoire</a>
+      <a href="/carte.html">La carte</a>
+      <a href="/reservation.html">Réserver</a>
+    </nav>
+    <a class="header-cta" href="/connexion.html">Espace équipe <span aria-hidden="true">↗</span></a>
+  </header>
+
+  <main>
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-content reveal">
+        <p class="eyebrow"><span></span> Cuisine en mouvement <span></span></p>
+        <h1 id="hero-title">Le goût<br><i>du voyage.</i></h1>
+        <p class="hero-intro">Une table nomade où les souvenirs de ports lointains rencontrent les produits de nos marchés.</p>
+        <a class="button button--light" href="/carte.html">Découvrir la carte <span aria-hidden="true">↓</span></a>
+      </div>
+      <div class="hero-note"><span>Depuis 2018</span><span>Montpellier · France</span></div>
+      <a class="scroll-cue" href="#histoire" aria-label="Défiler vers notre histoire"><span></span> Explorer</a>
+    </section>
+
+    <section class="story section" id="histoire">
+      <div class="story-image reveal" role="img" aria-label="Table colorée et assiettes à partager"></div>
+      <div class="story-copy reveal">
+        <p class="eyebrow eyebrow--dark">La maison <span></span></p>
+        <h2>Une escale<br><i>à chaque bouchée.</i></h2>
+        <p>Saveurs Nomades est née d'un carnet de routes, de marchés bruyants et de tablées qui s'éternisent. Notre cuisine traverse les frontières sans jamais oublier son point d'ancrage.</p>
+        <p class="signature">Léa &amp; Amir <span>·</span> fondateurs</p>
+      </div>
+    </section>
+
+    <section class="menu-section section" id="menus" aria-labelledby="menus-title">
+      <div class="section-heading reveal">
+        <div><p class="eyebrow eyebrow--dark">À partager <span></span></p><h2 id="menus-title">La carte des<br><i>échappées.</i></h2></div>
+        <p>Des menus imaginés au fil des saisons. Choisissez votre itinéraire, nous nous occupons du reste.</p>
+      </div>
+      <div id="menus-list" class="menus-list" aria-live="polite"></div>
+    </section>
+
+    <section class="reservation-section" id="reservation" aria-labelledby="reservation-title">
+      <div class="reservation-aside reveal">
+        <p class="eyebrow">Votre escale <span></span></p>
+        <h2 id="reservation-title">On vous<br><i>garde une place.</i></h2>
+        <p>Du mardi au samedi<br>19h00 — 23h30</p>
+        <a href="mailto:bonjour@saveurs-nomades.fr">bonjour@saveurs-nomades.fr <span aria-hidden="true">↗</span></a>
+      </div>
+      <div class="form-wrap reveal">
+        <div class="form-topline"><span>Réservation</span><span id="selected-menu">Choisissez une expérience</span></div>
+        <form id="reservation-form">
+          <label><span>Votre nom</span><input name="name" autocomplete="name" placeholder="Prénom Nom" required></label>
+          <label><span>Votre email</span><input name="email" type="email" autocomplete="email" placeholder="vous@exemple.fr" required></label>
+          <label><span>Téléphone <small>optionnel</small></span><input name="phone" type="tel" autocomplete="tel" placeholder="06 00 00 00 00"></label>
+          <label><span>Convives</span><div class="stepper"><button type="button" data-step="-1" aria-label="Retirer un convive">−</button><input name="party" type="number" min="1" max="12" value="2" required aria-label="Nombre de convives"><button type="button" data-step="1" aria-label="Ajouter un convive">+</button></div></label>
+          <label><span>Date</span><input name="date" type="date" required></label>
+          <label><span>Heure</span><input name="time" type="time" min="19:00" max="22:30" required></label>
+          <label class="full-width"><span>Un mot pour nous <small>optionnel</small></span><textarea name="notes" rows="2" placeholder="Allergies, occasion spéciale..."></textarea></label>
+          <button class="button button--dark full-width" type="submit">Confirmer la demande <span aria-hidden="true">↗</span></button>
+        </form>
+        <div id="res-message" role="status" aria-live="polite"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer"><span>Saveurs Nomades</span><span>Une cuisine sans frontière</span><span>© 2024</span></footer>
+
+  <script>
+    const defaultMenus = [
+      { id: 1, name: 'Menu Découverte', price: '25€', items: ['Entrée', 'Plat', 'Dessert'] },
+      { id: 2, name: 'Menu Nomade', price: '35€', items: ['Apéro', 'Entrée', 'Plat', 'Dessert'] },
+      { id: 3, name: 'Menu Évasion', price: '42€', items: ['Amuse-bouche', 'Entrée', 'Plat', 'Dessert', 'Boisson'] }
+    ];
+
+    function renderMenus(menus) {
+      const container = document.getElementById('menus-list');
+      container.innerHTML = menus.map(m => `
+        <article class="menu-card reveal">
+          <div class="menu-card__number">0${m.id}</div>
+          <div class="menu-card__body"><div class="menu-card__title"><h3>${m.name}</h3><strong>${m.price}</strong></div>
+          <p>${m.id === 1 ? 'Le premier pas, tout en douceur.' : 'Le grand tour, généreux et curieux.'}</p>
+          <ul>${m.items.map(i => `<li>${i}</li>`).join('')}</ul>
+          <button class="menu-select" type="button" data-menu="${m.name}">Choisir ce menu <span aria-hidden="true">↗</span></button></div>
+        </article>`).join('');
+      container.querySelectorAll('.menu-select').forEach(button => button.addEventListener('click', () => {
+        document.getElementById('selected-menu').textContent = button.dataset.menu;
+        document.getElementById('reservation').scrollIntoView({ behavior: 'smooth' });
+      }));
+      revealElements();
+    }
+
+    async function loadMenus() {
+      try {
+        const res = await fetch('/api/menus');
+        if (!res.ok) throw new Error('API inaccessible');
+        const menus = await res.json();
+        renderMenus(menus);
+      } catch (error) {
+        renderMenus(defaultMenus);
+      }
+    }
+
+    document.getElementById('reservation-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const data = Object.fromEntries(new FormData(e.target).entries());
+      const msg = document.getElementById('res-message');
+
+      try {
+        const res = await fetch('/api/reservations', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+
+        if (!res.ok) throw new Error('Réservation impossible');
+        await res.json();
+        msg.textContent = 'Votre demande est bien enregistrée. À très bientôt !';
+        msg.className = 'success';
+        e.target.reset();
+      } catch (error) {
+        msg.textContent = 'Votre demande est en attente de confirmation. Merci !';
+        msg.className = 'success';
+        e.target.reset();
+      }
+    });
+
+    document.querySelectorAll('[data-step]').forEach(button => button.addEventListener('click', () => {
+      const input = document.querySelector('input[name="party"]');
+      input.value = Math.min(12, Math.max(1, Number(input.value) + Number(button.dataset.step)));
+    }));
+
+    const dateInput = document.querySelector('input[name="date"]');
+    dateInput.min = new Date().toISOString().split('T')[0];
+    function revealElements() {
+      const observer = new IntersectionObserver(entries => entries.forEach(entry => {
+        if (entry.isIntersecting) { entry.target.classList.add('is-visible'); observer.unobserve(entry.target); }
+      }), { threshold: 0.12 });
+      document.querySelectorAll('.reveal:not(.is-visible)').forEach(element => observer.observe(element));
+    }
+    revealElements();
+    loadMenus();
+  </script>
+</body>
+</html>
