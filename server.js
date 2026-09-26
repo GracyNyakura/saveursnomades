@@ -103,8 +103,9 @@ app.post('/api/auth/logout', (req, res) => {
 // Simple menus endpoint (could be expanded or loaded from DB)
 app.get('/api/menus', (req, res) => {
   const menus = [
-    { id: 1, name: 'Menu Découverte', price: '25€', items: ['Entrée', 'Plat', 'Dessert'] },
-    { id: 2, name: 'Menu Nomade', price: '35€', items: ['Apéro', 'Entrée', 'Plat', 'Dessert'] }
+    { id: 1, name: 'Menu Découverte', price: '$28', items: ['Entrée du moment', 'Plat au choix', 'Dessert'] },
+    { id: 2, name: 'Menu Nomade', price: '$42', items: ['Apéro', 'Entrée', 'Plat', 'Dessert'] },
+    { id: 3, name: 'Menu Grande Traversée', price: '$58', items: ['Deux entrées à partager', 'Plat signature', 'Dessert', 'Cocktail maison'] }
   ];
   res.json(menus);
 });
