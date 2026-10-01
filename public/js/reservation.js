@@ -58,6 +58,7 @@ async function createReservationPdf(data, reservation) {
   const invoice = document.createElement('article');
   invoice.className = 'pdf-invoice';
   invoice.innerHTML = `<div class="pdf-invoice__head"><div class="pdf-invoice__logo">SAVEURS<strong>NOMADES</strong></div><div>CUISINE EN MOUVEMENT<br>MONTPELLIER · FRANCE</div><div class="pdf-invoice__motif">•<br>•<br>•</div></div><div class="pdf-invoice__title"><span>Facture</span><strong>de votre escale</strong><p>Merci, votre commande est confirmée.</p></div><div class="pdf-invoice__details"><div><small>RÉFÉRENCE</small><span>${ref}</span></div><div><small>CLIENT</small><span>${data.name}</span></div><div><small>EMAIL</small><span>${data.email}</span></div><div><small>DATE & HEURE</small><span>${data.date} · ${data.time}</span></div><div><small>CONVIVES</small><span>${data.party} personne${Number(data.party) > 1 ? 's' : ''}</span></div></div><div class="pdf-invoice__table"><div class="pdf-invoice__table-head"><span>ARTICLE</span><span>QUANTITÉ</span><span>TOTAL</span></div>${(data.order || []).map(line => `<div class="pdf-invoice__row"><span>${line.name}<small>$${Number(line.unitPrice).toFixed(2)} l'unité</small></span><span>${line.quantity}</span><strong>$${Number(line.lineTotal).toFixed(2)}</strong></div>`).join('')}</div><div class="pdf-invoice__total"><span>TOTAL À RÉGLER</span><strong>$${Number(data.total || 0).toFixed(2)}</strong></div><footer>Saveurs Nomades · bonjour@saveurs-nomades.fr · Merci pour votre confiance</footer>`;
+  invoice.innerHTML = invoice.innerHTML.replace('MONTPELLIER · FRANCE', 'KINSHASA · RDC');
   document.body.appendChild(invoice);
   await document.fonts.ready;
   const canvas = await html2canvas(invoice, { scale: 2, backgroundColor: '#f6f1e8', useCORS: true });
@@ -75,20 +76,51 @@ document.querySelectorAll('[data-step]').forEach(button => button.addEventListen
   const input = document.querySelector('input[name="party"]');
   input.value = Math.min(12, Math.max(1, Number(input.value) + Number(button.dataset.step)));
 }));
+async function handlePaymentReturn() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('payment') === 'cancelled') {
+    message.textContent = 'Paiement annulé : aucune réservation n’a été réglée.';
+    message.className = 'error';
+    return;
+  }
+  if (params.get('payment') !== 'return' || !params.get('token')) return;
+  form.hidden = true;
+  document.querySelector('.order-builder').hidden = true;
+  message.textContent = 'Vérification du paiement en cours…';
+  try {
+    const result = await api('/api/payments/paypal/capture-order', { method: 'POST', body: JSON.stringify({ paypalOrderId: params.get('token') }) });
+    const order = result.order;
+    message.textContent = `Paiement confirmé. Réservation ${order.order_reference} · $${order.total_usd} USD.`;
+    message.className = 'success';
+    try {
+      await createReservationPdf({ name: order.customer_name, email: order.customer_email, phone: order.phone, party: order.party, date: order.requested_date, time: order.requested_time, order: order.items, total: order.total_usd }, { id: order.order_reference });
+      message.textContent += ' Votre reçu PDF a été téléchargé.';
+    } catch (pdfError) {
+      console.error('Receipt generation failed:', pdfError);
+    }
+  } catch (error) {
+    form.hidden = false;
+    document.querySelector('.order-builder').hidden = false;
+    message.textContent = error.message;
+    message.className = 'error';
+  }
+  window.history.replaceState({}, '', '/reservation.html');
+}
+
 form.addEventListener('submit', async event => {
   event.preventDefault();
   const button = form.querySelector('button[type="submit"]');
   button.disabled = true;
-  button.textContent = 'Envoi en cours...';
+  button.textContent = 'Préparation du paiement…';
   try {
     const data = Object.fromEntries(new FormData(form).entries());
     data.order = collectOrder();
-    data.total = updateOrderTotal();
+    updateOrderTotal();
     if (!data.order.length) throw new Error('Choisissez au moins un article pour votre commande.');
-    const response = await api('/api/reservations', { method: 'POST', body: JSON.stringify(data) });
-    await createReservationPdf(data, response.reservation);
-    message.textContent = 'Réservation confirmée. Votre facture PDF a été téléchargée.';
-    message.className = 'success'; form.reset();
+    const response = await api('/api/payments/paypal/create-order', { method: 'POST', body: JSON.stringify({ ...data, fulfillment: 'reservation', order: data.order }) });
+    window.location.assign(response.approvalUrl);
   } catch (error) { message.textContent = error.message; message.className = 'error'; }
-  button.disabled = false; button.innerHTML = 'Confirmer la demande <span>↗</span>';
+  button.disabled = false; button.innerHTML = 'Payer avec PayPal <span>↗</span>';
 });
+
+handlePaymentReturn();

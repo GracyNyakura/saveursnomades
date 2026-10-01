@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Livraison à Kinshasa — Saveurs Nomades</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;1,500;1,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="interior-page reservation-page">
+  <header class="site-header">
+    <a class="brand" href="/" aria-label="Saveurs Nomades, accueil"><span class="brand-mark">SN</span><span class="brand-text"><strong>Saveurs</strong><em>Nomades</em></span></a>
+    <nav class="site-nav" aria-label="Navigation principale"><a href="/histoire.html">Notre histoire</a><a href="/carte.html">La carte</a><a href="/reservation.html">Réserver</a><a href="/livraison.html" aria-current="page">Livraison</a></nav>
+    <a class="header-cta" href="/carte.html">Voir la carte <span>↗</span></a>
+  </header>
+  <main class="reservation-page-main delivery-page-main">
+    <aside class="reservation-aside">
+      <p class="eyebrow">Kinshasa <span></span></p>
+      <h1>Le voyage<br><i>vient à vous.</i></h1>
+      <p>Livraison dans les 24 communes de Kinshasa.<br>Forfait fixe : <strong>$15 USD</strong>.</p>
+      <a href="/carte.html">Composer votre menu <span>↗</span></a>
+    </aside>
+    <section class="form-wrap delivery-form-wrap" aria-labelledby="delivery-title">
+      <div class="form-topline"><span id="delivery-title">Commande à livrer</span><span>Kinshasa · $15 de livraison</span></div>
+      <div id="delivery-result" role="status" aria-live="polite"></div>
+      <form id="delivery-form">
+        <label><span>Votre nom</span><input name="name" autocomplete="name" placeholder="Prénom Nom" required></label>
+        <label><span>Votre email</span><input name="email" type="email" autocomplete="email" placeholder="vous@exemple.com" required></label>
+        <label><span>Téléphone</span><input name="phone" type="tel" autocomplete="tel" placeholder="+243 ..." required></label>
+        <label><span>Convives</span><div class="stepper"><button type="button" data-step="-1" aria-label="Retirer un convive">−</button><input name="party" type="number" min="1" max="12" value="1" required aria-label="Nombre de convives"><button type="button" data-step="1" aria-label="Ajouter un convive">+</button></div></label>
+        <label><span>Commune</span><select name="commune" id="delivery-commune" required><option value="">Chargement des communes...</option></select></label>
+        <label class="full-width"><span>Adresse complète</span><textarea name="address" rows="2" autocomplete="street-address" placeholder="Quartier, avenue, numéro, repère" required></textarea></label>
+        <label><span>Date souhaitée</span><input name="date" type="date" required></label>
+        <label><span>Heure souhaitée</span><input name="time" type="time" min="10:00" max="21:00" required></label>
+        <label class="full-width"><span>Instructions <small>optionnel</small></span><textarea name="notes" rows="2" placeholder="Allergies, indications pour le livreur…"></textarea></label>
+        <button class="button button--dark full-width" type="submit">Continuer vers PayPal <span>↗</span></button>
+      </form>
+    </section>
+  </main>
+  <footer class="site-footer"><a href="/">Saveurs Nomades</a><nav aria-label="Navigation de pied de page"><a href="/histoire.html">Notre histoire</a><a href="/carte.html">La carte</a><a href="/reservation.html">Réserver</a></nav><span>Livraison à Kinshasa · © <b data-year></b></span></footer>
+  <script src="js/shared.js"></script>
+  <script src="js/delivery.js"></script>
+</body>
+</html>

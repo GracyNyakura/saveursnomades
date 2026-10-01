@@ -177,7 +177,8 @@ const catalog = [
     ['Ananas rôti au gingembre', 'Ananas caramélisé, sorbet citron vert et menthe', '$10']
   ]}
 ];
-window.menuCatalog = catalog;
+if (typeof module !== 'undefined' && module.exports) module.exports = { catalog, defaultMenus };
+if (typeof window !== 'undefined') window.menuCatalog = catalog;
 
 function renderMenus(menus) {
   document.querySelector('#menus-list').innerHTML = menus.map(menu => `<article class="menu-card menu-card--large">
@@ -196,9 +197,11 @@ function renderCatalog() {
   </article>`).join('');
 }
 
-(async () => {
-  if (document.querySelector('#menus-list')) {
-    try { renderMenus(await api('/api/menus')); } catch { renderMenus(defaultMenus); }
-  }
-  if (document.querySelector('#catalog-list')) renderCatalog();
-})();
+if (typeof document !== 'undefined') {
+  (async () => {
+    if (document.querySelector('#menus-list')) {
+      try { renderMenus(await api('/api/menus')); } catch { renderMenus(defaultMenus); }
+    }
+    if (document.querySelector('#catalog-list')) renderCatalog();
+  })();
+}
